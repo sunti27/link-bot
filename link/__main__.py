@@ -1,12 +1,16 @@
-from discord.ext.commands import Bot
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-with open("token.txt") as fp:
-    TOKEN = fp.read().strip()
+import json
+from link.engine import Bot
 
-bot = Bot(command_prefix="-")
+
+with open("config/discord.json") as fp:
+    config = json.load(fp)
+
+
+bot = Bot(config)
+
 
 if __name__ == '__main__':
-    bot.load_extension('commands', )
-    bot.load_extension('events')
-
-    bot.run(TOKEN)
+    bot.run()

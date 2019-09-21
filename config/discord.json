@@ -1,0 +1,12 @@
+{
+  "note": "",
+  "auth": {
+    "client_id": 0
+  },
+  "bot": {
+    "command_prefix": "/"
+  },
+  "owner": {
+    "id": 0
+  }
+}
