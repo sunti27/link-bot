@@ -1,5 +1,8 @@
-# Discord.py stuff
+# Privacy stuff
 token.txt
+
+#PyCharm stuff
+.idea
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
