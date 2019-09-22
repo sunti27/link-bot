@@ -1,0 +1,16 @@
+{
+  "auth": {
+    "client_id": 624672146848743485,
+    "token_path": "config/token.txt"
+  },
+  "bot": {
+    "command_prefix": "/",
+    "description": "A discord bot written in python by sunti27",
+    "name": "Link#9260",
+    "id": 624672146848743485
+  },
+  "owner": {
+    "name": "sunti27#7861",
+    "id": 430791380210810880
+  }
+}

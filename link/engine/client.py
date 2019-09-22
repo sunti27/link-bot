@@ -10,33 +10,34 @@ from discord.ext import commands
 
 class Bot(commands.Bot):
     def __init__(self, config):
-        bot_config = config.pop('bot', {})
+        bot_config = config['bot']
+        auth = config['auth']
 
         self.command_prefix = commands.when_mentioned_or(bot_config['command_prefix'])
 
         bot_config['command_prefix'] = self.command_prefix
-
         super().__init__(**bot_config)
 
-        auth = config['auth']
+        with open(auth['token_path']) as token:
+            self.__TOKEN = token.read().strip()
 
-        self.token = auth['token']
-        self.owner_id = config['owner']['id']
         self.client_id = auth['client_id']
 
         # self.remove_command('help')
 
     def run(self):
-        super().run(self.token)
+        super().run(self.__TOKEN)
 
     async def on_connect(self):
+        print(f'Trying to connect...')
+
         await self.change_presence(status=discord.Status.idle)
 
     async def on_ready(self):
         print(f'Logged in as {self.user.name}')
         print(f'ID: {self.user.id}')
 
-        with open('link/modules') as modules:
+        with open('modules.txt') as modules:
             for module in modules.readlines():
                 module = module.strip()
                 if not module.startswith('#'):
