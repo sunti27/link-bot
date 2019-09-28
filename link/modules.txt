@@ -1,9 +1,0 @@
-#repl
-#rex/rextester
-#brainfuck
-#fun
-info
-#moderation
-#owner
-#useful
-events
