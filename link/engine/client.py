@@ -13,9 +13,6 @@ class Bot(commands.Bot):
         bot_config = config['bot']
         auth = config['auth']
 
-        self.command_prefix = commands.when_mentioned_or(bot_config['command_prefix'])
-
-        bot_config['command_prefix'] = self.command_prefix
         super().__init__(**bot_config)
 
         with open(auth['token_path']) as token:
@@ -23,7 +20,7 @@ class Bot(commands.Bot):
 
         self.client_id = auth['client_id']
 
-        # self.remove_command('help')
+        self.remove_command('help')
 
     def run(self):
         super().run(self.__TOKEN)

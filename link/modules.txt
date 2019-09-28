@@ -1,9 +1,9 @@
 #repl
-#rextension/rextester
+#rex/rextester
 #brainfuck
 #fun
-#info
+info
 #moderation
 #owner
 #useful
-#events
+events

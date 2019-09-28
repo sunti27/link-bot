@@ -1,94 +1,58 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-'''ext/info.py:
-Commands to get information about something.
-'''
-
-###### IMPORTS ######
 
 import discord
 from discord.ext import commands
-from io import StringIO
-from contextlib import redirect_stdout
-import json
 import datetime
 
-from nano.utils import functions
 
-###### MAIN ######
-
-class Info:
+class Info(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
-    async def help(self, ctx, *, cmd = None):
-        msg = """**Nano help message:**
-```py
-Fun:              # fun commands
-  vap             <text>``````Useful:           # useful commands
-  ping             
-  purge           [limit]      
-    [-u|--user]   <user> [limit]
-    [-b|--bot]    [limit]         
-    [-w|--word]   <word> [limit]``````Moderation:       # commands for moderation
-  kick            <user> [reason] 
-  nick            <user> <new>``````Info:             # commands to get info
-  user            <user>
-  me 
-  help            [command]``````Compiler:         # public execute commands
-  [rxt|rextester] <source>
-  [bf|brainfuck]  <source>``````REPL:             # executing commands for owner
-  exec            <code>
-  repl            # prefix = %``````
-Owner:            # commands for owner
-  src             <command>
-  shutdown
-```"""
-        msg += '```' + ''.join([
-            'For more help on a command type ',
-            f'{ctx.prefix}help <command>.\n',
-            'For help on reactions type ',
-            f'{ctx.prefix}help reactions.'
-        ]) + '```'
-        
+    @commands.command(name="help", aliases=['?'], brief="Shows help")
+    async def help(self, ctx, *, cmdname=None):
+        """Shows the bots help message."""
+
+        if cmdname:
+            cmd = self.bot.get_command(cmdname)
+            msg = f"```py\n{self.bot.command_prefix}[{cmd.name}"
+            for alias in cmd.aliases:
+                msg += f"|{alias}"
+
+            msg += f"]\n{cmd.help or 'No description provided yet'}\n```"
+        else:
+            msg = f"**{self.bot.user.name} help message**"
+
+            for cog in self.bot.cogs:
+                if cog.lower() == 'events':
+                    continue
+                msg += f'```py\n{cog}'
+                for cmd in self.bot.get_cog(cog).get_commands():
+                    msg += f'\n{" "*4}{cmd.name:<10}{cmd.brief or ""}'
+                msg += '\n```'
+
         await ctx.send(msg)
-        
-    @commands.command()
-    async def user(self, ctx, member: discord.Member = None):
+
+    @commands.command(name="user", aliases=["u"], brief="Shows user imformation")
+    async def user(self, ctx, *, member: discord.Member = None):
+        """Shows common user information."""
+
         user = member or ctx.author
-        em = discord.Embed(
-            title='Info about {}'.format(user),
-            description=user.id,
-            timestamp=datetime.datetime.utcnow(),
-            colour=user.top_role.colour
-        )
-        em.set_thumbnail(url=user.avatar_url)
-        em.set_footer(
-                text=ctx.guild.name, 
-                icon_url=ctx.guild.icon_url
-                )
-        em.add_field(
-                name='User joined at', 
-                value=str(user.joined_at).split('.')[0]
-                )
-        em.add_field(
-                name='User created at', 
-                value=str(user.created_at).split('.')[0]
-                )
-        em.add_field(
-                name='Time in guild', 
-                value=str(
-                    datetime.datetime.utcnow()-user.joined_at
-                    ).split('.')[0]
-                  )
-        em.add_field(name='User is a bot', value=user.bot)
-        await ctx.send(embed=em)
+
+        await ctx.send(embed=self.user_information(user, ctx))
         
-    @commands.command()
+    @commands.command(name="me", aliases=[], brief="Shows your user information")
     async def me(self, ctx):
+        """Shows your user information."""
+
         user = ctx.author
+
+        await ctx.send(embed=self.user_information(user, ctx))
+
+    @staticmethod
+    def user_information(user, ctx):
         em = discord.Embed(
             title='Info about {}'.format(user),
             description=user.id,
@@ -96,28 +60,14 @@ Owner:            # commands for owner
             colour=user.top_role.colour
         )
         em.set_thumbnail(url=user.avatar_url)
-        em.set_footer(
-                text=ctx.guild.name, 
-                icon_url=ctx.guild.icon_url
-                )
-        em.add_field(
-                name='You joined at', 
-                value=str(user.joined_at).split('.')[0]
-                )
-        em.add_field(
-                name='Your account created at', 
-                value=str(user.created_at).split('.')[0]
-                )
-        em.add_field(
-                name='Time in guild', 
-                value=str(
-                    datetime.datetime.utcnow()-user.joined_at
-                    ).split('.')[0]
-                )
-        em.add_field(name='You are a bot', value=user.bot)
-        await ctx.send(embed=em)
-        
-###### RUN ######
+        em.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
+        em.add_field(name='User joined at', value=str(user.joined_at).split('.')[0])
+        em.add_field(name='User created at', value=str(user.created_at).split('.')[0])
+        em.add_field(name='Time in guild', value=str(datetime.datetime.utcnow() - user.joined_at).split('.')[0])
+        em.add_field(name='User is a bot', value=user.bot)
+
+        return em
+
 
 def setup(bot):
     bot.add_cog(Info(bot))

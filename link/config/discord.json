@@ -4,7 +4,7 @@
     "token_path": "config/token.txt"
   },
   "bot": {
-    "command_prefix": "/",
+    "command_prefix": "-",
     "description": "A discord bot written in python by sunti27",
     "name": "Link#9260",
     "id": 624672146848743485
