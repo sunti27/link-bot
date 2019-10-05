@@ -34,7 +34,7 @@ class Bot(commands.Bot):
         print(f'Logged in as {self.user.name}')
         print(f'ID: {self.user.id}')
 
-        with open('modules.txt') as modules:
+        with open('../modules.txt') as modules:
             for module in modules.readlines():
                 module = module.strip()
                 if not module.startswith('#'):
@@ -55,7 +55,7 @@ class Bot(commands.Bot):
             ),
             discord.Activity(
                 type=discord.ActivityType.listening,
-                name='your voice'
+                name='your conversations'
             ),
             discord.Activity(
                 type=discord.ActivityType.streaming,

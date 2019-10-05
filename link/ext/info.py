@@ -5,14 +5,15 @@
 import discord
 from discord.ext import commands
 import datetime
+from tools.paginator import HelpPaginator
 
 
 class Info(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="help", aliases=['?'], brief="Shows help")
-    async def help(self, ctx, *, cmdname=None):
+    @commands.command(name="help", aliases=['?', "h"], brief="Shows help")
+    async def help(self, ctx: commands.Context, *, cmdname: str = ''):
         """Shows the bots help message."""
 
         if cmdname:
@@ -23,17 +24,15 @@ class Info(commands.Cog):
 
             msg += f"]\n{cmd.help or 'No description provided yet'}\n```"
         else:
-            msg = f"**{self.bot.user.name} help message**"
+            pag = HelpPaginator(ctx.channel, self.bot, ctx.author)
 
             for cog in self.bot.cogs:
                 if cog.lower() == 'events':
                     continue
-                msg += f'```py\n{cog}'
-                for cmd in self.bot.get_cog(cog).get_commands():
-                    msg += f'\n{" "*4}{cmd.name:<10}{cmd.brief or ""}'
-                msg += '\n```'
 
-        await ctx.send(msg)
+                pag.add_cog_page(cog)
+
+            await pag.start()
 
     @commands.command(name="user", aliases=["u"], brief="Shows user imformation")
     async def user(self, ctx, *, member: discord.Member = None):
@@ -57,7 +56,7 @@ class Info(commands.Cog):
             title='Info about {}'.format(user),
             description=user.id,
             timestamp=datetime.datetime.utcnow(),
-            colour=user.top_role.colour
+            colour=user.colour
         )
         em.set_thumbnail(url=user.avatar_url)
         em.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
