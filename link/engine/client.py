@@ -55,7 +55,7 @@ class Bot(commands.Bot):
             ),
             discord.Activity(
                 type=discord.ActivityType.listening,
-                name='your voice'
+                name='your conversations'
             ),
             discord.Activity(
                 type=discord.ActivityType.streaming,
