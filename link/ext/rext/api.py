@@ -120,32 +120,3 @@ async def execute(sesh: aiohttp.ClientSession, lang: Language,
         data['Stats'],
         data['Result']
     )
-
-###### TEST ######
-
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-
-    async def test():
-        async with aiohttp.ClientSession() as cs:
-            r = await execute(cs, Language.csharp, '''
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-                using System.Text.RegularExpressions;
-
-                namespace Rextester
-                {
-                    public class Program
-                    {
-                        public static void Main(string[] args)
-                        {
-                            Console.WriteLine("Hello, world!");
-                        }
-                    }
-                }
-                ''')
-
-            print(repr(r))
-
-    loop.run_until_complete(test())

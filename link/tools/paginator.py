@@ -8,7 +8,7 @@ import datetime
 
 
 class Paginator:
-    def __init__(self, channel: TextChannel, bot: Bot, author: User) -> NoReturn:
+    def __init__(self, channel: TextChannel, bot: Bot, author: User) -> NoReturn: # TODO: Finish paginator
         self._pages: List[Embed] = []
         self._index: int = 0
         self._channel: TextChannel = channel

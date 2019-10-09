@@ -5,7 +5,7 @@ import json
 from link.engine import Bot
 
 
-with open("config/discord.json") as fp:
+with open("config.json") as fp:
     config = json.load(fp)
 
 
