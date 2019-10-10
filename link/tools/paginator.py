@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import List, Dict, NoReturn, Any
+from typing import List, Dict, NoReturn, Any, Optional
 from discord import Embed, TextChannel, User
 from discord.ext.commands import Bot
 import datetime
 
 
 class Paginator:
-    def __init__(self, channel: TextChannel, bot: Bot, author: User) -> NoReturn: # TODO: Finish paginator
-        self._pages: List[Embed] = []
+    def __init__(self, channel: TextChannel, bot: Bot, author: User, content_type: str) -> NoReturn:
+        self._pages: List[Optional[Embed, str]] = []
         self._index: int = 0
         self._channel: TextChannel = channel
 
@@ -24,6 +24,7 @@ class Paginator:
         self._msg = None
         self._bot = bot
         self._author = author
+        self._type = content_type.lower()
 
     async def first(self) -> NoReturn:
         self._index = 0
@@ -46,35 +47,37 @@ class Paginator:
     async def start(self) -> NoReturn:
         self._msg = await self._channel.send(embed=self._pages[0])
 
-        for reaction in list(self._reactions.keys())[2:]:
+        for reaction in list(self._reactions.keys()):
             await self._msg.add_reaction(reaction)
 
         self._bot.loop.create_task(self.reaction_updater())
 
-    async def reaction_updater(self):
+    async def reaction_updater(self) -> None:
         while True:
-            reaction, user = await self._bot.wait_for('reaction_add')
+            reaction, user = await self._bot.wait_for('reaction_add', check=(
+                lambda r, u: u == self._author and r.emoji in self._reactions.keys()
+            ))
 
             await self._msg.remove_reaction(reaction, user)
 
-            if user == self._author:
-                old_index: int = self._index
+            old_index: int = self._index
 
-                await self._reactions[reaction.emoji]()
+            await self._reactions[reaction.emoji]()
 
-                if old_index != self._index:
+            if old_index != self._index:
+                if self._type == "embed":
                     await self._msg.edit(embed=self._pages[self._index])
 
 
 class HelpPaginator(Paginator):
     def __init__(self, channel: TextChannel, bot: Bot, author: User) -> NoReturn:
-        super().__init__(channel, bot, author)
+        super().__init__(channel, bot, author, "embed")
 
     def add_cog_page(self, cog: str) -> NoReturn:
         cog = self._bot.get_cog(cog)
 
         em: Embed = Embed(
-            title='{} commands'.format(cog.qualified_name),
+            title=f'{cog.qualified_name} commands',
             timestamp=datetime.datetime.utcnow(),
             colour=self._author.color
         )
@@ -82,7 +85,7 @@ class HelpPaginator(Paginator):
         for cmd in cog.get_commands():
             em.add_field(
                 name=f'{self._bot.command_prefix}[{cmd.name}{"|" if cmd.aliases else ""}{"|".join(cmd.aliases)}]',
-                value=cmd.brief or '',
+                value=cmd.brief or 'None',
                 inline=False
             )
 

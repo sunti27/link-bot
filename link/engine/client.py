@@ -3,34 +3,38 @@
 
 import asyncio
 import random
-
+import json
+from typing import List, Dict, Optional, NoReturn
 import discord
 from discord.ext import commands
 
 
 class Bot(commands.Bot):
-    def __init__(self, config):
-        bot_config = config['bot']
-        auth = config['auth']
+    """The bots class"""
+    def __init__(self) -> NoReturn:
+        """Initializer for the bot class"""
+        with open("../config.json") as config:
+            self._config: Dict[str, Optional[str, int]] = json.load(config)
 
-        super().__init__(**bot_config)
-
-        with open(auth['token_path']) as token:
-            self.__TOKEN = token.read().strip()
-
-        self.client_id = auth['client_id']
+        super().__init__(
+            command_prefix=self._config["bot"]["command_prefix"],
+            description=self._config["bot"]["description"]
+        )
 
         self.remove_command('help')
 
-    def run(self):
-        super().run(self.__TOKEN)
+    def run(self) -> NoReturn:
+        """The improved run method"""
+        super().run(self._config["bot"]["token"])
 
-    async def on_connect(self):
-        print(f'Trying to connect...')
+    async def on_connect(self) -> NoReturn:
+        """Event that is called on connection"""
+        print('Trying to connect...')
 
         await self.change_presence(status=discord.Status.idle)
 
-    async def on_ready(self):
+    async def on_ready(self) -> NoReturn:
+        """Event that is called when the bot is ready"""
         print(f'Logged in as {self.user.name}')
         print(f'ID: {self.user.id}')
 
@@ -43,8 +47,9 @@ class Bot(commands.Bot):
 
         self.loop.create_task(self.status_runner())
 
-    async def status_runner(self):
-        activities = [
+    async def status_runner(self) -> NoReturn:
+        """Background task that changes bots activity"""
+        activities: List[discord.Activity] = [
             discord.Activity(
                 type=discord.ActivityType.playing,
                 name='with your data'

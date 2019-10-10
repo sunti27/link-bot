@@ -1,10 +1,10 @@
-#repl
-#rex/rextester
-#brainfuck
-#fun
+# repl
+# rex/rextester
+# brainfuck
+# fun
 info
-#moderation
-#owner
-#useful
+moderation
+# owner
+# useful
 events
 untis
