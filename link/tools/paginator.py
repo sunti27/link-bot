@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from typing import List, Dict, NoReturn, Any, Optional
-from discord import Embed, TextChannel, User
+from discord import TextChannel, User
+from .embed import Embed
 from discord.ext.commands import Bot
 import datetime
 
@@ -45,6 +46,9 @@ class Paginator:
             await self._msg.clear_reactions()
 
     async def start(self) -> NoReturn:
+        for idx in range(len(self._pages)):
+            self._pages[idx].set_footer(text=f'Page [{idx+1}/{len(self._pages)}]', icon_url=self._channel.guild.icon_url)
+
         self._msg = await self._channel.send(embed=self._pages[0])
 
         for reaction in list(self._reactions.keys()):
@@ -85,10 +89,7 @@ class HelpPaginator(Paginator):
         for cmd in cog.get_commands():
             em.add_field(
                 name=f'{self._bot.command_prefix}[{cmd.name}{"|" if cmd.aliases else ""}{"|".join(cmd.aliases)}]',
-                value=cmd.brief or 'None',
-                inline=False
+                value=cmd.brief or 'None'
             )
-
-        em.set_footer(text=self._channel.guild.name, icon_url=self._channel.guild.icon_url)
 
         self._pages.append(em)

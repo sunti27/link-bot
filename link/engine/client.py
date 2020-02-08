@@ -13,7 +13,7 @@ class Bot(commands.Bot):
     """The bots class"""
     def __init__(self) -> NoReturn:
         """Initializer for the bot class"""
-        with open("../config.json") as config:
+        with open("config.json") as config:
             self._config: Dict[str, Optional[str, int]] = json.load(config)
 
         super().__init__(
@@ -25,7 +25,7 @@ class Bot(commands.Bot):
 
     def run(self) -> NoReturn:
         """The improved run method"""
-        super().run(self._config["bot"]["token"])
+        super().run(self._config["auth"]["token"])
 
     async def on_connect(self) -> NoReturn:
         """Event that is called on connection"""

@@ -6,7 +6,7 @@ import datetime
 from typing import Optional
 import discord
 from discord.ext import commands
-from tools.paginator import HelpPaginator
+from tools import Embed, HelpPaginator
 
 
 class Info(commands.Cog):
@@ -25,7 +25,7 @@ class Info(commands.Cog):
         """
         if cmdname:
             cmd: commands.Command = self.bot.get_command(cmdname)
-            em: discord.Embed = discord.Embed(
+            em: Embed = Embed(
                 title=f'The {cmd.name} command',
                 description=cmd.help.splitlines()[0],
                 timestamp=datetime.datetime.utcnow(),
@@ -80,14 +80,14 @@ class Info(commands.Cog):
         await ctx.send(embed=self.user_information(user, ctx))
 
     @staticmethod
-    def user_information(user, ctx) -> discord.Embed:
+    def user_information(user, ctx) -> Embed:
         """
         Visualise some user information
         :param user: The discord user
         :param ctx: Some data like the channel or author
         :return: The visualised discord embed
         """
-        em: discord.Embed = discord.Embed(
+        em: Embed = Embed(
             title='Info about {}'.format(user),
             description=user.id,
             timestamp=datetime.datetime.utcnow(),
