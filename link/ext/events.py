@@ -6,8 +6,7 @@ import discord
 from discord.ext import commands
 import asyncio
 from typing import Dict, Any, Optional
-from datetime import datetime
-from tools import Embed
+from tools import SpecialEmbed
 
 
 class Events(commands.Cog):
@@ -46,10 +45,10 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, user: discord.Member) -> None:
-        em: Embed = Embed(
+        em: SpecialEmbed = SpecialEmbed(
+            user.guild,
             title="User joined!",
             description='Welcome {}'.format(user),
-            timestap=datetime.utcnow(),
             color=discord.Colour.teal()
         )
 
@@ -59,10 +58,10 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_remove(self, user: discord.Member) -> None:
-        em: Embed = Embed(
+        em: SpecialEmbed = SpecialEmbed(
+            user.guild,
             title="User left!",
             description='RIP {}'.format(user),
-            timestamp=datetime.utcnow(),
             color=discord.Colour.red()
         )
 

@@ -6,7 +6,7 @@ import datetime
 from typing import Optional
 import discord
 from discord.ext import commands
-from tools import Embed, HelpPaginator
+from tools import SpecialEmbed, HelpPaginator
 
 
 class Info(commands.Cog):
@@ -16,7 +16,7 @@ class Info(commands.Cog):
         self.bot: commands.Bot = bot
 
     @commands.command(name="help", aliases=['?', "h"], brief="Shows help")
-    async def help(self, ctx: commands.Context, *, cmdname: str = '') -> None:
+    async def help(self, ctx: commands.Context, *, cmdname: str = '') -> None:  # TODO: add subcommands to help message
         """
         Shows the bots help message.
         :param ctx: Some data like the channel or author
@@ -25,10 +25,10 @@ class Info(commands.Cog):
         """
         if cmdname:
             cmd: commands.Command = self.bot.get_command(cmdname)
-            em: Embed = Embed(
+            em: SpecialEmbed = SpecialEmbed(
+                ctx.guild,
                 title=f'The {cmd.name} command',
-                description=cmd.help.splitlines()[0],
-                timestamp=datetime.datetime.utcnow(),
+                description=(cmd.help if cmd.help is not None else '\n').splitlines()[0],
                 colour=ctx.author.color
             )
             em.add_field(
@@ -38,11 +38,9 @@ class Info(commands.Cog):
             )
             em.add_field(
                 name="Signature",
-                value=f"{', '.join(list(signature(cmd.callback).parameters)[1:])}",
+                value=f"{', '.join(list(signature(cmd.callback).parameters)[2:])}",
                 inline=False
             )
-
-            em.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
 
             await ctx.send(embed=em)
         else:
@@ -80,21 +78,21 @@ class Info(commands.Cog):
         await ctx.send(embed=self.user_information(user, ctx))
 
     @staticmethod
-    def user_information(user, ctx) -> Embed:
+    def user_information(user, ctx) -> SpecialEmbed:
         """
         Visualise some user information
         :param user: The discord user
         :param ctx: Some data like the channel or author
         :return: The visualised discord embed
         """
-        em: Embed = Embed(
+        em: SpecialEmbed = SpecialEmbed(
+            ctx.guild,
             title='Info about {}'.format(user),
             description=user.id,
-            timestamp=datetime.datetime.utcnow(),
             colour=user.colour
         )
         em.set_thumbnail(url=user.avatar_url)
-        em.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
+
         em.add_field(name='User joined at', value=str(user.joined_at).split('.')[0])
         em.add_field(name='User created at', value=str(user.created_at).split('.')[0])
         em.add_field(name='Time in guild', value=str(datetime.datetime.utcnow() - user.joined_at).split('.')[0])

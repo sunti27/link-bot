@@ -5,5 +5,5 @@
 info
 moderation
 # owner
-# useful
+useful
 events

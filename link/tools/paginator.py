@@ -3,14 +3,14 @@
 
 from typing import List, Dict, NoReturn, Any, Optional
 from discord import TextChannel, User
-from .embed import Embed
+from . import RawEmbed
 from discord.ext.commands import Bot
 import datetime
 
 
 class Paginator:
     def __init__(self, channel: TextChannel, bot: Bot, author: User, content_type: str) -> NoReturn:
-        self._pages: List[Optional[Embed, str]] = []
+        self._pages: List[Optional[RawEmbed, str]] = []
         self._index: int = 0
         self._channel: TextChannel = channel
 
@@ -47,7 +47,10 @@ class Paginator:
 
     async def start(self) -> NoReturn:
         for idx in range(len(self._pages)):
-            self._pages[idx].set_footer(text=f'Page [{idx+1}/{len(self._pages)}]', icon_url=self._channel.guild.icon_url)
+            self._pages[idx].set_footer(
+                text=f'Page [{idx+1}/{len(self._pages)}]',
+                icon_url=self._channel.guild.icon_url
+            )
 
         self._msg = await self._channel.send(embed=self._pages[0])
 
@@ -80,7 +83,7 @@ class HelpPaginator(Paginator):
     def add_cog_page(self, cog: str) -> NoReturn:
         cog = self._bot.get_cog(cog)
 
-        em: Embed = Embed(
+        em: RawEmbed = RawEmbed(
             title=f'{cog.qualified_name} commands',
             timestamp=datetime.datetime.utcnow(),
             colour=self._author.color
@@ -93,3 +96,7 @@ class HelpPaginator(Paginator):
             )
 
         self._pages.append(em)
+
+
+class ContentPaginator(Paginator):
+    pass
