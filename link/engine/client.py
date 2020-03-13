@@ -21,7 +21,10 @@ class Bot(commands.Bot):
             description=self._config["bot"]["description"]
         )
 
+        self.owner: Optional[discord.User, None] = None
         self.remove_command('help')
+
+        self.done = '\u2705'
 
     def run(self) -> NoReturn:
         """The improved run method"""
@@ -35,13 +38,16 @@ class Bot(commands.Bot):
 
     async def on_ready(self) -> NoReturn:
         """Event that is called when the bot is ready"""
+        self.owner = (await self.application_info()).owner
+
         print(f'Logged in as {self.user.name}')
         print(f'ID: {self.user.id}')
+        print(f'Owner: {self.owner}')
 
         with open('../modules.txt') as modules:
             for module in modules.readlines():
                 module = module.strip()
-                if not module.startswith('#'):
+                if not module.startswith('#') and module:
                     module = module.strip().replace('/', '.')
                     self.load_extension(f'link.ext.{module}')
 

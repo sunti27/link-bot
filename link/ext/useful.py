@@ -28,7 +28,7 @@ class Useful(commands.Cog):
     @commands.group(invoke_without_command=True, name="purge", aliases=['del', 'rm'], brief="Deletes messages")
     async def purge(self, ctx, amount: int):
         deleted = await ctx.channel.purge(limit=amount+1)
-        msg = await ctx.send('Deleted {} message(s)!'.format(len(list(deleted))))
+        msg = await ctx.send('Deleted {} message(s)!'.format(len(list(deleted))-1))
         await asyncio.sleep(2)
         await msg.delete()
 

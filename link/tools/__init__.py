@@ -2,4 +2,4 @@
 # -*- coding: utf-8 -*-
 
 from .embed import RawEmbed, SpecialEmbed
-from .paginator import HelpPaginator, ContentPaginator
+from .paginator import HelpPaginator, ContentPaginator, short

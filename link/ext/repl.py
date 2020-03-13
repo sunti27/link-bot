@@ -1,63 +1,47 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-'''ext/repl.py:
-Here are repl commands for the bot.
-'''
-
-###### IMPORTS ######
-
 import discord
 from discord.ext import commands
 
-import time
-import datetime
-import os
-import sys
-import random
-import math
-import asyncio
 import traceback
 import inspect
 import textwrap
 import io
-import json
 from contextlib import redirect_stdout
 
-from nano.utils import functions
+from tools import SpecialEmbed, short
 
 
-###### MAIN ######
-
-class Repl:
+class Repl(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self._last_result = None
         self.sessions = set()
-        self.repl_prefix = '%'
+        self.repl_prefix = '.'
 
     def cleanup_code(self, content):
-        '''Remove code blocks from the code.'''
+        """Remove code blocks from the code."""
         
         # remove ```py\n```
         if content.startswith('```') and content.endswith('```'):
             return '\n'.join(content.split('\n')[1:-1])
 
         # remove `foo`
-        return content.strip(f'{self.repl_prefix} ` \n')
+        content = content.strip(f'{self.repl_prefix} ` \n')
+
+        if content.splitlines()[0].strip() == 'py':
+            return content.splitlines()[1:]
 
     def get_syntax_error(self, e):
-        '''Get a syntax error.'''
+        """Get a syntax error."""
         if e.text is None:
-            return '```py\n{0.__class__.__name__}: {0}\n```'.format(e)
-        return '```py\n{0.text}{1:>{0.offset}}\n{2}: {0}```'.format(e, '^', type(e).__name__)
+            return f'```py\n{e.__class__.__name__}: {0}\n```'
+        return f'```py\n{e.text}{"^":>{e.offset}}\n{type(e).__name__}: {e}```'
 
     @commands.command(name='exec')
+    @commands.is_owner()
     async def _exec(self, ctx, *, body: str):
-        if ctx.author.id != json.load(
-                open('setup/config.json')
-            )['owner']['owner_id']:
-        	return await ctx.message.add_reaction(self.bot.reactions['not_allowed'])
 
         env = {
             'bot': self.bot,
@@ -74,7 +58,7 @@ class Repl:
         body = self.cleanup_code(body)
         stdout = io.StringIO()
 
-        to_compile = 'async def func():\n{}'.format(textwrap.indent(body, '  '))
+        to_compile = f'async def func():\n{textwrap.indent(body, " "*4)}'  # Todo: Does not work for one-liners
 
         try:
             exec(to_compile, env)
@@ -82,44 +66,41 @@ class Repl:
             return await ctx.send(self.get_syntax_error(e))
 
         func = env['func']
+
         try:
             with redirect_stdout(stdout):
                 ret = await func()
+
         except Exception as e:
             value = stdout.getvalue()
-            await ctx.send('```py\n{}{}\n```'.format(value, traceback.format_exc()))
+            await ctx.send(f'```py\n{value}{traceback.format_exc()}\n```')
         else:
             value = stdout.getvalue()
-            try:
-                await ctx.message.add_reaction(self.bot.reactions['done'])
-            except:
-                pass
-            
-            value = stdout.getvalue()
-            output = []
-            
+
+            em = SpecialEmbed(
+                ctx.guild,
+                title='Execution output'
+            )
+
             if value:
-                output.append('# Output: ')
-                if len(value.split('\n')) > 2:
-                    output[0] += f'\n{value}'
-                else:
-                    output[0] += value
-            
+                em.add_field(name='Output', value='```py\n' + short(value) + '\n```')
+
             if ret:
-                output.append('# Returned: {}'.format(ret))
                 self._last_result = ret
-            
-            if output:
-                for page in functions.paginate('\n'.join(output)):
-                    await ctx.send(page)
+
+            if ret is not None:
+                ret = str(ret)
+
+                em.add_field(name='Returned', value='```py\n' + short(value) + '\n```')
+
+            await ctx.message.add_reaction(self.bot.done)
+
+            if value and ret is not None:
+                await ctx.send(embed=em)
 
     @commands.command()
+    @commands.is_owner()
     async def repl(self, ctx):
-        if ctx.author.id != json.load(
-                open('setup/config.json')
-            )['owner']['owner_id']:
-        	return await ctx.message.add_reaction(self.bot.reactions['not_allowed'])
-
         msg = ctx.message
 
         variables = {
@@ -133,21 +114,27 @@ class Repl:
         }
 
         if msg.channel.id in self.sessions:
-            return await ctx.send('Already running a REPL session in this channel. Exit it with `{}quit`.'.format(self.repl_prefix))
-
+            return await ctx.send(
+                f'Already running a REPL session in this channel. Exit it with `{self.repl_prefix}quit`.'
+            )
 
         self.sessions.add(msg.channel.id)
-        await ctx.message.add_reaction(self.bot.reactions['done'])
+
+        await ctx.message.add_reaction(self.bot.done)
+
         while True:
-            response = await self.bot.wait_for('message', check=lambda m: m.author == ctx.author and m.content.startswith(self.repl_prefix))
+            response = await self.bot.wait_for('message', check=(
+                lambda m: m.author == ctx.author and m.content.startswith(self.repl_prefix)
+            ))
 
             cleaned = self.cleanup_code(response.content)
 
             if cleaned == 'quit':
-                await response.add_reaction(self.bot.reactions['done'])
+                await response.add_reaction(self.bot.done)
                 return self.sessions.remove(msg.channel.id)
 
             executor = exec
+
             if cleaned.count('\n') == 0:
                 # single statement, potentially 'eval'
                 try:
@@ -172,29 +159,29 @@ class Repl:
             try:
                 with redirect_stdout(stdout):
                     result = executor(code, variables)
+
                     if inspect.isawaitable(result):
                         result = await result
+
             except Exception as e:
                 value = stdout.getvalue()
-                fmt = '{}{}'.format(value, traceback.format_exc())
+                fmt = f'{value}{traceback.format_exc()}'
             else:
                 value = stdout.getvalue()
                 if result is not None:
-                    fmt = '{}{}'.format(value, result)
+                    fmt = f'{value}{result}'
                     variables['_'] = result
                 elif value:
-                    fmt = '{}'.format(value)
+                    fmt = value
 
             try:
                 if fmt is not None:
-                    for page in functions.paginate(fmt):
-                        await ctx.send(page)
+                    await ctx.send('```py\n' + short(fmt) + '\n```')
             except discord.Forbidden:
                 pass
             except discord.HTTPException as e:
-                await ctx.send('Unexpected error: `{}`'.format(e))
+                await ctx.send(f'Unexpected error: `{e}`')
 
-###### RUN ######
 
 def setup(bot):
     bot.add_cog(Repl(bot))

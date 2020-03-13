@@ -87,7 +87,7 @@ class Info(commands.Cog):
         """
         em: SpecialEmbed = SpecialEmbed(
             ctx.guild,
-            title='Info about {}'.format(user),
+            title=f'Info about {user}',
             description=user.id,
             colour=user.colour
         )
