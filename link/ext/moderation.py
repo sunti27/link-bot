@@ -4,6 +4,8 @@
 import datetime
 import discord
 from discord.ext import commands
+import json
+import os
 
 
 class Moderation(commands.Cog):
@@ -42,6 +44,24 @@ class Moderation(commands.Cog):
         """
         await user.edit(nick=new)
         await ctx.message.add_reaction("\u2705")
+
+    @commands.command(name='strike', aliases=[], brief="Strike a member")
+    async def strike(self, ctx, *, user: discord.Member):
+        with open("strikes.json", 'r') as fp:
+            strikes = json.load(fp)
+            uid = str(user.id)
+
+            if uid not in strikes.keys():
+                strikes[uid] = 1
+            else:
+                strikes[uid] += 1
+
+            if strikes[uid] >= 3:
+                del strikes[uid]
+                await user.kick(reason="3 Strikes")
+
+        with open("strikes.json", 'w') as fp:
+            json.dump(strikes, fp, indent=4)
 
 
 def setup(bot):

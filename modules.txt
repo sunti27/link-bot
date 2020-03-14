@@ -4,7 +4,7 @@ info
 moderation
 owner
 useful
-# events
+events
 repl
 # rex/rextester
 brainfuck
